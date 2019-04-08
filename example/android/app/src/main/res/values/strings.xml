@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SocialShare</string>
+
+    <string name="facebook_app_id">000000000000000</string>
+</resources>
