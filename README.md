@@ -1,5 +1,7 @@
 # social_share_plugin
 
+[![Pub](https://img.shields.io/pub/v/social_share_plugin.svg?color=blue)](https://pub.dartlang.org/packages/social_share_plugin)
+
 Social Share to Facebook and Instagram Flutter plugin.
 
 ## Getting Started
