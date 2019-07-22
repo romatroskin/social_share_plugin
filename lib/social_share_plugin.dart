@@ -52,4 +52,28 @@ class SocialSharePlugin {
       'url': url,
     });
   }
+
+  static Future<bool> shareToTwitter({
+    String text,
+    String url,
+    OnSuccessHandler onSuccess,
+    OnCancelHandler onCancel,
+  }) async {
+    _channel.setMethodCallHandler((call) {
+      switch (call.method) {
+        case "onSuccess":
+          return onSuccess(call.arguments);
+        case "onCancel":
+          return onCancel();
+//        case "onError":
+//          return onError(call.arguments);
+        default:
+          throw UnsupportedError("Unknown method called");
+      }
+    });
+    return _channel.invokeMethod('shareToTwitter', <String, dynamic>{
+      'text': text,
+      'url': url,
+    });
+  }
 }

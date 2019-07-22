@@ -18,8 +18,11 @@ import com.facebook.share.model.ShareMediaContent;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
+import com.twitter.sdk.android.tweetcomposer.TweetComposer;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -28,12 +31,18 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
+
 /**
  * SocialSharePlugin
  */
 public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
     private final static String INSTAGRAM_PACKAGE_NAME = "com.instagram.android";
     private final static String FACEBOOK_PACKAGE_NAME = "com.facebook.katana";
+    private final static String TWITTER_PACKAGE_NAME = "com.twitter.android";
+
+    private final static int TWITTER_REQUEST_CODE = 42066613;
 
     private final Registrar registrar;
     private final MethodChannel channel;
@@ -43,6 +52,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         this.channel = channel;
         this.registrar = registrar;
         this.callbackManager = CallbackManager.Factory.create();
+        this.registrar.addActivityResultListener(this);
     }
 
     /**
@@ -50,14 +60,22 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
      */
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "social_share_plugin");
-        final SocialSharePlugin plugin = new SocialSharePlugin(registrar, channel);
-        registrar.addActivityResultListener(plugin);
-        channel.setMethodCallHandler(plugin);
+        channel.setMethodCallHandler(new SocialSharePlugin(registrar, channel));
     }
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("SocialSharePlugin", "onActivityResult");
+        if (requestCode == TWITTER_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Log.d("SocialSharePlugin", "Twitter done.");
+                channel.invokeMethod("onSuccess", null);
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.d("SocialSharePlugin", "Twitter cancelled.");
+                channel.invokeMethod("onCancel", null);
+
+            }
+        }
         return callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -91,6 +109,15 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                 result.success(true);
             } catch (PackageManager.NameNotFoundException e) {
                 openPlayStore(FACEBOOK_PACKAGE_NAME);
+                result.success(false);
+            }
+        } else if (call.method.equals("shareToTwitter")) {
+            try {
+                pm.getPackageInfo(TWITTER_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                twitterShare(call.<String>argument("text"), call.<String>argument("url"));
+                result.success(true);
+            } catch (PackageManager.NameNotFoundException e) {
+                openPlayStore(TWITTER_PACKAGE_NAME);
                 result.success(false);
             }
         } else {
@@ -161,6 +188,21 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         });
         if (ShareDialog.canShow(ShareLinkContent.class)) {
             shareDialog.show(content);
+        }
+    }
+
+    private void twitterShare(String text, String url) {
+        try {
+            TweetComposer.Builder builder = new TweetComposer.Builder(registrar.activity())
+                    .text(text);
+            if (url != null && url.length() > 0) {
+                builder.url(new URL(url));
+            }
+
+            final Intent intent = builder.createIntent();
+            registrar.activity().startActivityForResult(intent, TWITTER_REQUEST_CODE);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         }
     }
 }

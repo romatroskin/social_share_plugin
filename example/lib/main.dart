@@ -78,22 +78,42 @@ class _MyAppState extends State<MyApp> {
                   quote: quote,
                   url: url,
                   onSuccess: (postId) {
-                    print('SUCCESS $postId');
+                    print('FACEBOOK SUCCESS $postId');
                     return;
                   },
                   onCancel: () {
-                    print('CANCELLED');
+                    print('FACEBOOK CANCELLED');
                     return;
                   },
                   onError: (error) {
-                    print("ERROR $error");
+                    print('FACEBOOK ERROR $error');
                     return;
                   },
                 );
 
                 print(result);
               },
-            )
+            ),
+            RaisedButton(
+              child: Text('Share to Twitter'),
+              onPressed: () async {
+                String url = 'https://flutter.dev/';
+                final text =
+                    'Flutter is Google’s portable UI toolkit for building beautiful, natively-compiled applications for mobile, web, and desktop from a single codebase.';
+                final result = await SocialSharePlugin.shareToTwitter(
+                    text: text,
+                    url: url,
+                    onSuccess: (_) {
+                      print('TWITTER SUCCESS');
+                      return;
+                    },
+                    onCancel: () {
+                      print('TWITTER CANCELLED');
+                      return;
+                    });
+                print(result);
+              },
+            ),
           ],
         ),
       ),
