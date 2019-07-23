@@ -1,15 +1,35 @@
 #import "SocialSharePlugin.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
+#import <FBSDKLoginKit/FBSDKLoginKit.h>
+#import <TwitterKit/TWTRKit.h>
 
-@implementation SocialSharePlugin
+@implementation SocialSharePlugin {
+    FlutterMethodChannel* _channel;
+    FBSDKLoginManager* _loginManager;
+    UIDocumentInteractionController* _dic;
+    NSString* _token;
+    NSString* _quote;
+    NSString* _url;
+    FlutterResult _result;
+}
+
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel
       methodChannelWithName:@"social_share_plugin"
             binaryMessenger:[registrar messenger]];
-  SocialSharePlugin* instance = [[SocialSharePlugin alloc] init];
+  SocialSharePlugin* instance = [[SocialSharePlugin alloc] initWithChannel:channel];
   [registrar addApplicationDelegate:instance];
   [registrar addMethodCallDelegate:instance channel:channel];
+}
+
+- (instancetype)initWithChannel:(FlutterMethodChannel*)channel {
+    self = [super init];
+    if(self) {
+        _channel = channel;
+        _loginManager = [[FBSDKLoginManager alloc] init];
+    }
+    return self;
 }
 
 - (BOOL)application:(UIApplication *)application
@@ -17,6 +37,7 @@
 
   [[FBSDKApplicationDelegate sharedInstance] application:application
                            didFinishLaunchingWithOptions:launchOptions];
+  [[Twitter sharedInstance] startWithConsumerKey:@"hTpkPVU4pThkM0" consumerSecret:@"ovEqziMzLpUOF163Qg2mj"];
   return YES;
 }
 
@@ -29,7 +50,7 @@
                 openURL:url
       sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
              annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
-  return handled;
+  return handled || [[Twitter sharedInstance] application:application openURL:url options:options];
 }
 
 - (BOOL)application:(UIApplication *)application
@@ -45,45 +66,85 @@
 }
 
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
-    self->result = result;
+    _result = result;
   if ([@"getPlatformVersion" isEqualToString:call.method]) {
     result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
   } else if ([@"shareToFeedInstagram" isEqualToString:call.method]) {
       NSURL *instagramURL = [NSURL URLWithString:@"instagram://app"];
       if([[UIApplication sharedApplication] canOpenURL:instagramURL]) {
           [self instagramShare:call.arguments[@"path"]];
-          result(@"Sharing completed successfully");
+          result(nil);
       } else {
-          NSString *instagramLink = @"itms://itunes.apple.com/us/app/apple-store/id389801252?mt=8";
+          NSString *instagramLink = @"itms://itunes.apple.com/us/app/apple-store/id389801252";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:instagramLink]];
+          result(false);
       }
-      
-//      result(@"Sharing complete successfully");
   } else if ([@"shareToFeedFacebook" isEqualToString:call.method]) {
       NSURL *fbURL = [NSURL URLWithString:@"fbapi://"];
       if([[UIApplication sharedApplication] canOpenURL:fbURL]) {
           [self facebookShare:call.arguments[@"path"]];
-//          result(nil);
+          result(nil);
       } else {
-          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215?mt=8";
+          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          result(false);
       }
-      
-//      result(nil);
   } else if([@"shareToFeedFacebookLink" isEqualToString:call.method]) {
       NSURL *fbURL = [NSURL URLWithString:@"fbapi://"];
       if([[UIApplication sharedApplication] canOpenURL:fbURL]) {
-          [self facebookShareLink:call.arguments[@"quote"] url:call.arguments[@"url"]];
-//          result(nil);
+          FBSDKAccessToken *accessToken = [FBSDKAccessToken currentAccessToken];
+          bool isLoggedIn = accessToken != nil && !accessToken.expired;
+          if(isLoggedIn) {
+              _token = accessToken.tokenString;
+              [self facebookShareLink:call.arguments[@"quote"] url:call.arguments[@"url"]];
+              result(nil);
+          } else {
+              UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
+              _quote = call.arguments[@"quote"];
+              _url = call.arguments[@"url"];
+              [_loginManager logInWithReadPermissions:@[@"email"] fromViewController:controller handler:^(FBSDKLoginManagerLoginResult *loginResult,
+                                                                                                                                NSError *error) {
+                  [self handleLoginResult:loginResult
+                                   result:result
+                                    error:error];
+              }];
+          }
       } else {
-          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215?mt=8";
+          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          result(false);
       }
-      
-//      result(nil);
+  } else if([@"shareToTwitter" isEqualToString:call.method]) {
+//      NSURL *twitterURL = [NSURL URLWithString:@"twitter://"];
+//      if([[UIApplication sharedApplication] canOpenURL:twitterURL]) {
+          [self twitterShare:call.arguments[@"text"] url:call.arguments[@"url"]];
+          result(nil);
+//      } else {
+//          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id333903271";
+//          [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+//          result(false);
+//      }
   } else {
     result(FlutterMethodNotImplemented);
   }
+}
+
+- (void)handleLoginResult:(FBSDKLoginManagerLoginResult *)loginResult
+                   result:(FlutterResult)result
+                    error:(NSError *)error {
+    if(error == nil) {
+        if(!loginResult.isCancelled) {
+            _token = loginResult.token.tokenString;
+            [self facebookShareLink:_quote url:_url];
+            _result(nil);
+        } else {
+            [_channel invokeMethod:@"onCancel" arguments:nil];
+            _result(nil);
+        }
+    } else {
+        [_channel invokeMethod:@"onError" arguments:nil];
+        _result(nil);
+    }
 }
 
 - (void)facebookShare:(NSString*)imagePath {
@@ -107,28 +168,46 @@
 
 - (void)instagramShare:(NSString*)imagePath {
     NSError *error = nil;
+    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
     [[NSFileManager defaultManager] moveItemAtPath:imagePath toPath:[NSString stringWithFormat:@"%@.igo", imagePath] error:&error];
     NSURL *path = [NSURL URLWithString:[NSString stringWithFormat:@"file://%@.igo", imagePath]];
-    dic = [UIDocumentInteractionController interactionControllerWithURL:path];
-    dic.UTI = @"com.instagram.exclusivegram";
-    if (![dic presentOpenInMenuFromRect:CGRectZero inView:[UIApplication sharedApplication].delegate.window.rootViewController.view animated:TRUE]) {
+    _dic = [UIDocumentInteractionController interactionControllerWithURL:path];
+    _dic.UTI = @"com.instagram.exclusivegram";
+    if (![_dic presentOpenInMenuFromRect:CGRectZero inView:controller.view animated:TRUE]) {
         NSLog(@"Error sharing to instagram");
     };
 }
 
+- (void)twitterShare:(NSString*)text
+                 url:(NSString*)url {
+    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
+    TWTRComposer *composer = [[TWTRComposer alloc] init];
+    [composer setText:text];
+    [composer setURL:[NSURL URLWithString:url]];
+    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
+        if (result == TWTRComposerResultCancelled) {
+            [self->_channel invokeMethod:@"onCancel" arguments:nil];
+            NSLog(@"Tweet composition cancelled");
+        }
+        else {
+            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+            NSLog(@"Sending Tweet!");
+        }
+    }];
+}
+
 - (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results{
-    self->result(@"Sharing complete successfully");
+    [_channel invokeMethod:@"onSuccess" arguments:_token];
     NSLog(@"Sharing completed successfully");
 }
 
 - (void)sharerDidCancel:(id<FBSDKSharing>)sharer{
-    self->result(@"Sharing cancelled");
+    [_channel invokeMethod:@"onCancel" arguments:nil];
     NSLog(@"Sharing cancelled");
 }
 
 - (void)sharer:(id<FBSDKSharing>)sharer didFailWithError:(NSError *)error{
-    NSNumber* codeNumber = @(error.code);
-    self->result([FlutterError errorWithCode:[codeNumber stringValue] message:@"Failed to share" details:nil]);
+    [_channel invokeMethod:@"onError" arguments:nil];
     NSLog(@"%@",error);
 }
 

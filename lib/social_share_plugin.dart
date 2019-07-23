@@ -28,7 +28,7 @@ class SocialSharePlugin {
     });
   }
 
-  static Future<bool> shareToFeedFacebookLink({
+  static Future<dynamic> shareToFeedFacebookLink({
     String quote,
     String url,
     OnSuccessHandler onSuccess,
