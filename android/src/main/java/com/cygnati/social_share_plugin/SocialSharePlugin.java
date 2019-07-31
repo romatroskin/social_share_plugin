@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -199,11 +200,14 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     private void instagramShare(String type, String imagePath) {
         final Context context = registrar.activeContext();
         final File image = new File(imagePath);
-        final Uri uri = Uri.fromFile(image);
+//        final Uri uri = Uri.fromFile(image);
+        final Uri uri = FileProvider.getUriForFile(context,
+                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
         share.putExtra(Intent.EXTRA_STREAM, uri);
         share.setPackage(INSTAGRAM_PACKAGE_NAME);
+        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(Intent.createChooser(share, "Share to"));
     }
 

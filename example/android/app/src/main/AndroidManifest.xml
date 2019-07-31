@@ -44,5 +44,14 @@
         <provider android:authorities="com.facebook.app.FacebookContentProvider000000000000000"
             android:name="com.facebook.FacebookContentProvider"
             android:exported="true"/>
+
+        <provider android:name="androidx.core.content.FileProvider"
+            android:authorities="com.cygnati.social_share_plugin_example.social.share.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
     </application>
 </manifest>
