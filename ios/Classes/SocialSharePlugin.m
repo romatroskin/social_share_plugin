@@ -180,19 +180,36 @@
 - (void)twitterShare:(NSString*)text
                  url:(NSString*)url {
     UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
-    TWTRComposer *composer = [[TWTRComposer alloc] init];
-    [composer setText:text];
-    [composer setURL:[NSURL URLWithString:url]];
-    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
-        if (result == TWTRComposerResultCancelled) {
-            [self->_channel invokeMethod:@"onCancel" arguments:nil];
-            NSLog(@"Tweet composition cancelled");
-        }
-        else {
-            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
-            NSLog(@"Sending Tweet!");
-        }
-    }];
+//    TWTRComposer *composer = [[TWTRComposer alloc] init];
+//    [composer setText:text];
+//    [composer setURL:[NSURL URLWithString:url]];
+//    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
+//        if (result == TWTRComposerResultCancelled) {
+//            [self->_channel invokeMethod:@"onCancel" arguments:nil];
+//            NSLog(@"Tweet composition cancelled");
+//        }
+//        else {
+//            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+//            NSLog(@"Sending Tweet!");
+//        }
+//    }];
+    
+    if ([[Twitter sharedInstance].sessionStore hasLoggedInUsers]) {
+        TWTRComposerViewController *composer = [TWTRComposerViewController emptyComposer];
+        [controller presentViewController:composer animated:YES completion:nil];
+    } else {
+        [[Twitter sharedInstance] logInWithCompletion:^(TWTRSession *session, NSError *error) {
+            if (session) {
+                TWTRComposerViewController *composer = [TWTRComposerViewController emptyComposer];
+                [controller presentViewController:composer animated:YES completion:nil];
+            } else {
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"No Twitter Accounts Available" message:@"You must log in before presenting a composer." preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *ok = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil];
+                [alert addAction:ok];
+                [controller presentViewController:alert animated:YES completion:nil];
+            }
+        }];
+    }
 }
 
 - (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results{
