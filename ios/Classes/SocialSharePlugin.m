@@ -74,7 +74,7 @@
           [self instagramShare:call.arguments[@"path"]];
           result(nil);
       } else {
-          NSString *instagramLink = @"itms://itunes.apple.com/us/app/apple-store/id389801252";
+          NSString *instagramLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id389801252";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:instagramLink]];
           result(false);
       }
@@ -84,7 +84,7 @@
           [self facebookShare:call.arguments[@"path"]];
           result(nil);
       } else {
-          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215";
+          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
           result(false);
       }
@@ -109,7 +109,7 @@
               }];
           }
       } else {
-          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id284882215";
+          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
           result(false);
       }
@@ -119,7 +119,7 @@
           [self twitterShare:call.arguments[@"text"] url:call.arguments[@"url"]];
           result(nil);
       } else {
-          NSString *fbLink = @"itms://itunes.apple.com/us/app/apple-store/id333903271";
+          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id333903271";
           [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
           result(false);
       }
