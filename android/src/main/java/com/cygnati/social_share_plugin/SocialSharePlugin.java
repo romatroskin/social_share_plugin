@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.StrictMode;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -38,7 +39,6 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
-import android.os.StrictMode;
 
 /**
  * SocialSharePlugin
@@ -47,6 +47,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     private final static String INSTAGRAM_PACKAGE_NAME = "com.instagram.android";
     private final static String FACEBOOK_PACKAGE_NAME = "com.facebook.katana";
     private final static String TWITTER_PACKAGE_NAME = "com.twitter.android";
+    private final static String WHATSAPP_PACKAGE_NAME = "com.whatsapp.android";
 
     private final static int TWITTER_REQUEST_CODE = 0xc0ce;
 
@@ -151,6 +152,14 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
 
                 result.success(null);
                 break;
+            case "shareToWhatsapp":
+                try{
+                    pm.getPackageInfo(WHATSAPP_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                    whatsappShare(call.<String>argument("type"), call.<String>argument("path"));
+                } catch(PackageManager.NameNotFoundException e) {
+                    openPlayStore(WHATSAPP_PACKAGE_NAME);
+                }
+                break;
             case "shareToFeedFacebookLink":
                 try {
                     AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -224,6 +233,19 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         if (ShareDialog.canShow(SharePhotoContent.class)) {
             shareDialog.show(content);
         }
+    }
+
+    private void whatsappShare(String type, String imagePath) {
+        final Context context = registrar.activeContext();
+        final File image = new File(imagePath);
+        Uri uri = Uri.fromFile(image);
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("*/*");
+        share.setPackage(WHATSAPP_PACKAGE_NAME);
+        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        share.putExtra(Intent.EXTRA_STREAM,uri);
+
+        context.startActivity(share);
     }
 
     private void facebookShareLink(String quote, String url, final String token) {

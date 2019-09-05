@@ -62,6 +62,13 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             RaisedButton(
+              child: Text('Share to whatsapp'),
+              onPressed: () async {
+                File file = await ImagePicker.pickImage(source: ImageSource.gallery);
+                await SocialSharePlugin.sharetoWhatsapp("image/*", file.path);
+              },
+            ),
+            RaisedButton(
               child: Text('Share to Facebook'),
               onPressed: () async {
                 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
