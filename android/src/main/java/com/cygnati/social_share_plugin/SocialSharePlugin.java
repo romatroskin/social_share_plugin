@@ -38,6 +38,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
+import android.os.StrictMode;
 
 /**
  * SocialSharePlugin
@@ -130,6 +131,8 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                 break;
             case "shareToFeedInstagram":
                 try {
+                    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                    StrictMode.setVmPolicy(builder.build());
                     pm.getPackageInfo(INSTAGRAM_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
                     instagramShare(call.<String>argument("type"), call.<String>argument("path"));
                 } catch (PackageManager.NameNotFoundException e) {
