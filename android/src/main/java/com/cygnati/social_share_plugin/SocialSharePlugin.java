@@ -154,6 +154,8 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                 break;
             case "shareToWhatsapp":
                 try{
+                    StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+                    StrictMode.setVmPolicy(builder.build());
                     pm.getPackageInfo(WHATSAPP_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
                     whatsappShare(call.<String>argument("type"), call.<String>argument("path"));
                 } catch(PackageManager.NameNotFoundException e) {
