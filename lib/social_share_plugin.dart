@@ -28,6 +28,13 @@ class SocialSharePlugin {
     });
   }
 
+  static Future<void> sharetoWhatsapp(String type, String path) async {
+    return _channel.invokeMethod('shareToWhatsapp', <String, dynamic>{
+      'type': type,
+      'path': path,
+    });
+  }
+
   static Future<dynamic> shareToFeedFacebookLink({
     String quote,
     String url,
