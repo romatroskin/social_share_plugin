@@ -216,7 +216,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         final File image = new File(imagePath);
 //        final Uri uri = Uri.fromFile(image);
         final Uri uri = FileProvider.getUriForFile(context,
-                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
+                context.getApplicationContext().getPackageName() + "com.cygnati.social_share_plugin_example.social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
         share.putExtra(Intent.EXTRA_STREAM, uri);
