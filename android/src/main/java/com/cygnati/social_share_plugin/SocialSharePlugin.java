@@ -142,6 +142,17 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
 
                 result.success(null);
                 break;
+
+            case "shareTextToFeedInstagram":
+                try {
+                    pm.getPackageInfo(INSTAGRAM_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                    instagramShareText(call.<String>argument("textMsg"));
+                } catch (PackageManager.NameNotFoundException e) {
+                    openPlayStore(INSTAGRAM_PACKAGE_NAME);
+                }
+                result.success(null);
+                break;
+
             case "shareToFeedFacebook":
                 try {
                     pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
@@ -162,6 +173,16 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                     openPlayStore(WHATSAPP_PACKAGE_NAME);
                 }
                 break;
+
+            case "shareTextToWhatsapp":
+                try{
+                    pm.getPackageInfo(WHATSAPP_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                    whatsappShareText(call.<String>argument("textMsg"));
+                } catch(PackageManager.NameNotFoundException e) {
+                    openPlayStore(WHATSAPP_PACKAGE_NAME);
+                }
+                break;
+
             case "shareToFeedFacebookLink":
                 try {
                     AccessToken accessToken = AccessToken.getCurrentAccessToken();
@@ -225,6 +246,17 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         context.startActivity(Intent.createChooser(share, "Share to"));
     }
 
+    private  void instagramShareText(String textMsg) {
+
+        final Context context = registrar.activeContext();
+        final Intent share = new Intent(Intent.ACTION_SEND);
+        share .putExtra(Intent.EXTRA_TEXT, textMsg);
+        share .setType("text/plain");
+        share .setPackage(INSTAGRAM_PACKAGE_NAME);
+        context.startActivity(share);
+
+    }
+
     private void facebookShare(String caption, String mediaPath) {
         final File media = new File(mediaPath);
         final Uri uri = Uri.fromFile(media);
@@ -242,12 +274,24 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         final File image = new File(imagePath);
         Uri uri = Uri.fromFile(image);
         Intent share = new Intent(Intent.ACTION_SEND);
-        share.setType("*/*");
+        share.setType("type");
         share.setPackage(WHATSAPP_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         share.putExtra(Intent.EXTRA_STREAM,uri);
 
         context.startActivity(share);
+    }
+
+    private void whatsappShareText(String textMsg) {
+
+        final Context context = registrar.activeContext();
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.setPackage(WHATSAPP_PACKAGE_NAME);
+        share.putExtra(Intent.EXTRA_TEXT, textMsg);
+
+        context.startActivity(share);
+
     }
 
     private void facebookShareLink(String quote, String url, final String token) {
