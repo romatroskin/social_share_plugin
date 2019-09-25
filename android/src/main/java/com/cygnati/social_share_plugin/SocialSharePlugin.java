@@ -161,7 +161,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                         this.quote = call.argument("quote");
                         this.url = call.argument("url");
                         this.loginManager.setLoginBehavior(LoginBehavior.NATIVE_WITH_FALLBACK);
-                        this.loginManager.logInWithReadPermissions(registrar.activity(), Collections.singletonList("email"));
+                        this.loginManager.logIn(registrar.activity(), Collections.singletonList("email"));
                     }
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
