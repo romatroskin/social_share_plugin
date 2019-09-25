@@ -101,7 +101,7 @@
               UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
               _quote = call.arguments[@"quote"];
               _url = call.arguments[@"url"];
-              [_loginManager logInWithReadPermissions:@[@"email"] fromViewController:controller handler:^(FBSDKLoginManagerLoginResult *loginResult,
+              [_loginManager logInWithPermissions:@[@"email"] fromViewController:controller handler:^(FBSDKLoginManagerLoginResult *loginResult,
                                                                                                                                 NSError *error) {
                   [self handleLoginResult:loginResult
                                    result:result
