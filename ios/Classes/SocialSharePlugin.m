@@ -168,8 +168,8 @@
 - (void)instagramShare:(NSString*)imagePath {
     NSError *error = nil;
     UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
-    [[NSFileManager defaultManager] moveItemAtPath:imagePath toPath:[NSString stringWithFormat:@"%@.igo", imagePath] error:&error];
-    NSURL *path = [NSURL URLWithString:[NSString stringWithFormat:@"file://%@.igo", imagePath]];
+    [[NSFileManager defaultManager] moveItemAtPath:imagePath toPath:[NSString stringWithFormat:@"%@", imagePath] error:&error];
+    NSURL *path = [NSURL URLWithString:[NSString stringWithFormat:@"file://%@", imagePath]];
     _dic = [UIDocumentInteractionController interactionControllerWithURL:path];
     _dic.UTI = @"com.instagram.exclusivegram";
     if (![_dic presentOpenInMenuFromRect:CGRectZero inView:controller.view animated:TRUE]) {
