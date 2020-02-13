@@ -7,7 +7,8 @@ typedef Future<dynamic> OnErrorHandler(String error);
 typedef Future<dynamic> OnSuccessHandler(String postId);
 
 class SocialSharePlugin {
-  static const MethodChannel _channel = const MethodChannel('social_share_plugin');
+  static const MethodChannel _channel =
+      const MethodChannel('social_share_plugin');
 
   static Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
@@ -21,10 +22,29 @@ class SocialSharePlugin {
     });
   }
 
+  static Future<void> shareTextToFeedInstagram(String txtMsg) async {
+    return _channel.invokeMethod('shareTextToFeedInstagram', <String, dynamic>{
+      'textMsg': txtMsg,
+    });
+  }
+
   static Future<void> shareToFeedFacebook(String caption, String path) async {
     return _channel.invokeMethod('shareToFeedFacebook', <String, dynamic>{
       'caption': caption,
       'path': path,
+    });
+  }
+
+  static Future<void> sharetoWhatsapp(String type, String path) async {
+    return _channel.invokeMethod('shareToWhatsapp', <String, dynamic>{
+      'type': type,
+      'path': path,
+    });
+  }
+
+  static Future<void> shareTextToWhatsapp(String txtMsg) async {
+    return _channel.invokeMethod('shareTextToWhatsapp', <String, dynamic>{
+      'textMsg': txtMsg,
     });
   }
 
@@ -51,6 +71,7 @@ class SocialSharePlugin {
       'quote': quote,
       'url': url,
     });
+    //test
   }
 
   static Future<bool> shareToTwitter({
