@@ -58,14 +58,27 @@ class _MyAppState extends State<MyApp> {
               child: Text('Share to Instagram'),
               onPressed: () async {
                 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-                await SocialSharePlugin.shareToFeedInstagram("image/*", file.path);
+                await SocialSharePlugin.shareToFeedInstagram(path: file.path);
               },
             ),
             RaisedButton(
               child: Text('Share to Facebook'),
               onPressed: () async {
                 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-                await SocialSharePlugin.shareToFeedFacebook('test', file.path);
+                await SocialSharePlugin.shareToFeedFacebook(
+                    path: file.path,
+                    onSuccess: (_) {
+                      print('FACEBOOK SUCCESS');
+                      return;
+                    },
+                    onCancel: () {
+                      print('FACEBOOK CANCELLED');
+                      return;
+                    },
+                    onError: (error) {
+                      print('FACEBOOK ERROR $error');
+                      return;
+                    });
               },
             ),
             RaisedButton(
@@ -77,8 +90,8 @@ class _MyAppState extends State<MyApp> {
                 final result = await SocialSharePlugin.shareToFeedFacebookLink(
                   quote: quote,
                   url: url,
-                  onSuccess: (postId) {
-                    print('FACEBOOK SUCCESS $postId');
+                  onSuccess: (_) {
+                    print('FACEBOOK SUCCESS');
                     return;
                   },
                   onCancel: () {
@@ -100,7 +113,7 @@ class _MyAppState extends State<MyApp> {
                 String url = 'https://flutter.dev/';
                 final text =
                     'Flutter is Google’s portable UI toolkit for building beautiful, natively-compiled applications for mobile, web, and desktop from a single codebase.';
-                final result = await SocialSharePlugin.shareToTwitter(
+                final result = await SocialSharePlugin.shareToTwitterLink(
                     text: text,
                     url: url,
                     onSuccess: (_) {

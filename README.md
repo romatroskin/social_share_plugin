@@ -56,6 +56,15 @@ Then you'll just have to copy-paste the following to your _Android Manifest_ and
 <provider android:authorities="com.facebook.app.FacebookContentProvider{APP_ID}"
             android:name="com.facebook.FacebookContentProvider"
             android:exported="true"/>
+
+<provider android:name="androidx.core.content.FileProvider"
+            android:authorities="{APP_PACKAGE}.social.share.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
 ```
 
 Done!
@@ -116,7 +125,7 @@ Done!
 import 'package:social_share_plugin/social_share_plugin.dart';
 
 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-await SocialSharePlugin.shareToFeedInstagram("image/*", file.path);
+await SocialSharePlugin.shareToFeedInstagram(path: file.path);
 ```
 
 ### Facebook
@@ -124,7 +133,16 @@ await SocialSharePlugin.shareToFeedInstagram("image/*", file.path);
 import 'package:social_share_plugin/social_share_plugin.dart';
 
 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-await SocialSharePlugin.shareToFeedFacebook('caption', file.path);
+await SocialSharePlugin.shareToFeedFacebook(path: file.path);
+
+await SocialSharePlugin.shareToFeedFacebookLink(quote: 'quote', url: 'https://flutter.dev');
+```
+
+### Twitter
+```dart
+import 'package:social_share_plugin/social_share_plugin.dart';
+
+await SocialSharePlugin.shareToTwitterLink(text: 'text', url: 'https://flutter.dev');
 ```
 
 That's it.

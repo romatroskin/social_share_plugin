@@ -3,22 +3,21 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'social_share_plugin'
-  s.version          = '0.0.1'
+  s.version          = '0.3.0'
   s.summary          = 'Social Share to Facebook and Intagram Flutter plugin.'
   s.description      = <<-DESC
 Social Share to Facebook and Intagram Flutter plugin.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'http://github.com/romatroskin'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Roman Matroskin' => 'romatroskin@gmail.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'TwitterKit'
-  s.dependency 'FBSDKCoreKit', '4.44.1'
-  s.dependency 'FBSDKShareKit', '4.44.1'
-  s.dependency 'FBSDKLoginKit', '4.44.1'
+  s.dependency 'FBSDKCoreKit'
+  s.dependency 'FBSDKShareKit'
 
 
   s.ios.deployment_target = '9.0'

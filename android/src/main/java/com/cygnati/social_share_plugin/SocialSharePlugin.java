@@ -10,13 +10,9 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
-import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.login.LoginBehavior;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
 import com.facebook.share.Sharer;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.model.SharePhoto;
@@ -27,7 +23,6 @@ import com.twitter.sdk.android.tweetcomposer.TweetComposer;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collections;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -52,45 +47,11 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     private final Registrar registrar;
     private final MethodChannel channel;
     private final CallbackManager callbackManager;
-    private final LoginManager loginManager;
-
-    private Result result;
-    private String quote;
-    private String url;
 
     private SocialSharePlugin(final Registrar registrar, final MethodChannel channel) {
         this.channel = channel;
         this.registrar = registrar;
         this.callbackManager = CallbackManager.Factory.create();
-        this.loginManager = LoginManager.getInstance();
-        this.loginManager.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                Log.d("SocialSharePlugin", "Facebook logged in.");
-                if (result != null) {
-                    facebookShareLink(quote, url, loginResult.getAccessToken().getToken());
-                    result.success(true);
-                    result = null;
-                }
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d("SocialSharePlugin", "Facebook login cancelled.");
-                channel.invokeMethod("onCancel", null);
-                result.success(false);
-                result = null;
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                Log.d("SocialSharePlugin", error.getMessage());
-                channel.invokeMethod("onError", error.getMessage());
-                result.success(false);
-                result = null;
-            }
-        });
-
         this.registrar.addActivityResultListener(this);
     }
 
@@ -132,8 +93,10 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                 try {
                     pm.getPackageInfo(INSTAGRAM_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
                     instagramShare(call.<String>argument("type"), call.<String>argument("path"));
+                    result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(INSTAGRAM_PACKAGE_NAME);
+                    result.success(false);
                 }
 
                 result.success(null);
@@ -142,36 +105,28 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                 try {
                     pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
                     facebookShare(call.<String>argument("caption"), call.<String>argument("path"));
+                    result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
+                    result.success(false);
                 }
 
                 result.success(null);
                 break;
             case "shareToFeedFacebookLink":
                 try {
-                    AccessToken accessToken = AccessToken.getCurrentAccessToken();
-                    boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
                     pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-                    if (isLoggedIn) {
-                        facebookShareLink(call.<String>argument("quote"), call.<String>argument("url"), accessToken.getToken());
-                        result.success(true);
-                    } else {
-                        this.result = result;
-                        this.quote = call.argument("quote");
-                        this.url = call.argument("url");
-                        this.loginManager.setLoginBehavior(LoginBehavior.NATIVE_WITH_FALLBACK);
-                        this.loginManager.logInWithReadPermissions(registrar.activity(), Collections.singletonList("email"));
-                    }
+                    facebookShareLink(call.<String>argument("quote"), call.<String>argument("url"));
+                    result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
                     result.success(false);
                 }
                 break;
-            case "shareToTwitter":
+            case "shareToTwitterLink":
                 try {
                     pm.getPackageInfo(TWITTER_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-                    twitterShare(call.<String>argument("text"), call.<String>argument("url"));
+                    twitterShareLink(call.<String>argument("text"), call.<String>argument("url"));
                     result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(TWITTER_PACKAGE_NAME);
@@ -200,7 +155,6 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     private void instagramShare(String type, String imagePath) {
         final Context context = registrar.activeContext();
         final File image = new File(imagePath);
-//        final Uri uri = Uri.fromFile(image);
         final Uri uri = FileProvider.getUriForFile(context,
                 context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
@@ -212,18 +166,39 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     }
 
     private void facebookShare(String caption, String mediaPath) {
+        final Context context = registrar.activeContext();
         final File media = new File(mediaPath);
-        final Uri uri = Uri.fromFile(media);
+        final Uri uri = FileProvider.getUriForFile(context,
+                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", media);
         final SharePhoto photo = new SharePhoto.Builder().setImageUrl(uri).setCaption(caption).build();
         final SharePhotoContent content = new SharePhotoContent.Builder().addPhoto(photo).build();
         final ShareDialog shareDialog = new ShareDialog(registrar.activity());
+        shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
+            @Override
+            public void onSuccess(Sharer.Result result) {
+                channel.invokeMethod("onSuccess", null);
+                Log.d("SocialSharePlugin", "Sharing successfully done.");
+            }
+
+            @Override
+            public void onCancel() {
+                channel.invokeMethod("onCancel", null);
+                Log.d("SocialSharePlugin", "Sharing cancelled.");
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                channel.invokeMethod("onError", error.getMessage());
+                Log.d("SocialSharePlugin", "Sharing error occurred.");
+            }
+        });
 
         if (ShareDialog.canShow(SharePhotoContent.class)) {
             shareDialog.show(content);
         }
     }
 
-    private void facebookShareLink(String quote, String url, final String token) {
+    private void facebookShareLink(String quote, String url) {
         final Uri uri = Uri.parse(url);
         final ShareLinkContent content = new ShareLinkContent.Builder()
                 .setContentUrl(uri).setQuote(quote).build();
@@ -231,7 +206,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
             public void onSuccess(Sharer.Result result) {
-                channel.invokeMethod("onSuccess", token);
+                channel.invokeMethod("onSuccess", null);
                 Log.d("SocialSharePlugin", "Sharing successfully done.");
             }
 
@@ -253,7 +228,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         }
     }
 
-    private void twitterShare(String text, String url) {
+    private void twitterShareLink(String text, String url) {
         try {
             TweetComposer.Builder builder = new TweetComposer
                     .Builder(registrar.activity()).text(text);
