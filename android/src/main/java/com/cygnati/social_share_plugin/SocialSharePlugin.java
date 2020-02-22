@@ -240,10 +240,23 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
 //                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
-        share.putExtra(Intent.EXTRA_STREAM, uri);
         share.setPackage(INSTAGRAM_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(share, "Share to"));
+        share.putExtra(Intent.EXTRA_STREAM, uri);
+        context.startActivity(share);
+    }
+
+    private void whatsappShare(String type, String imagePath) {
+        final Context context = registrar.activeContext();
+        final File image = new File(imagePath);
+        Uri uri = Uri.fromFile(image);
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("type");
+        share.setPackage(WHATSAPP_PACKAGE_NAME);
+        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        share.putExtra(Intent.EXTRA_STREAM,uri);
+
+        context.startActivity(share);
     }
 
     private  void instagramShareText(String textMsg) {
@@ -269,18 +282,6 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         }
     }
 
-    private void whatsappShare(String type, String imagePath) {
-        final Context context = registrar.activeContext();
-        final File image = new File(imagePath);
-        Uri uri = Uri.fromFile(image);
-        Intent share = new Intent(Intent.ACTION_SEND);
-        share.setType("type");
-        share.setPackage(WHATSAPP_PACKAGE_NAME);
-        share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        share.putExtra(Intent.EXTRA_STREAM,uri);
-
-        context.startActivity(share);
-    }
 
     private void whatsappShareText(String textMsg) {
 
