@@ -235,9 +235,9 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     private void instagramShare(String type, String imagePath) {
         final Context context = registrar.activeContext();
         final File image = new File(imagePath);
-//        final Uri uri = Uri.fromFile(image);
-        final Uri uri = FileProvider.getUriForFile(context,
-                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
+        final Uri uri = Uri.fromFile(image);
+//        final Uri uri = FileProvider.getUriForFile(context,
+//                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
         share.putExtra(Intent.EXTRA_STREAM, uri);
