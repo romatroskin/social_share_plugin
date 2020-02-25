@@ -48,12 +48,15 @@ Then you'll just have to copy-paste the following to your _Android Manifest_ and
 <meta-data android:name="com.facebook.sdk.ApplicationId"
     android:value="@string/facebook_app_id"/>
 
+<meta-data android:name="com.facebook.sdk.ApplicationName"
+            android:value="@string/app_name"/>
+
 <activity android:name="com.facebook.FacebookActivity"
     android:configChanges=
             "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
     android:label="@string/app_name" />
     
-<provider android:authorities="com.facebook.app.FacebookContentProvider{APP_ID}"
+<provider android:authorities="com.facebook.app.FacebookContentProvider{FACEBOOK_APP_ID}"
             android:name="com.facebook.FacebookContentProvider"
             android:exported="true"/>
 

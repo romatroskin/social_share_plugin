@@ -1,3 +1,6 @@
+## 0.3.0+1
+Minor fixes for iOS.
+
 ## 0.3.0
 Removed to needed anymnore facebook login on share link. Twitter share added. Minor bugfixes and cleanup.
 
