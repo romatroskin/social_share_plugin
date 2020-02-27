@@ -255,7 +255,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         share.setPackage(WHATSAPP_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         share.putExtra(Intent.EXTRA_STREAM,uri);
-        intent.putExtra(Intent.EXTRA_TEXT, text);
+        share.putExtra(Intent.EXTRA_TEXT, text);
 
         context.startActivity(share);
     }
