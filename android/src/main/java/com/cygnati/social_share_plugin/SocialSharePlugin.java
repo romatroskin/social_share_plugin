@@ -246,15 +246,16 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         context.startActivity(share);
     }
 
-    private void whatsappShare(String type, String imagePath) {
+    private void whatsappShare(String type, String imagePath, String text) {
         final Context context = registrar.activeContext();
         final File image = new File(imagePath);
         Uri uri = Uri.fromFile(image);
         Intent share = new Intent(Intent.ACTION_SEND);
-        share.setType("type");
+        share.setType("*/*");
         share.setPackage(WHATSAPP_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         share.putExtra(Intent.EXTRA_STREAM,uri);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
 
         context.startActivity(share);
     }
