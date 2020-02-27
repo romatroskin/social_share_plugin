@@ -35,10 +35,12 @@ class SocialSharePlugin {
     });
   }
 
-  static Future<void> sharetoWhatsapp(String type, String path) async {
+  static Future<void> sharetoWhatsapp(
+      String type, String path, String txtMsg) async {
     return _channel.invokeMethod('shareToWhatsapp', <String, dynamic>{
       'type': type,
       'path': path,
+      'textMsg': txtMsg,
     });
   }
 

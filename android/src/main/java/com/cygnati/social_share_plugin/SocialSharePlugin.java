@@ -168,7 +168,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
                     StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
                     StrictMode.setVmPolicy(builder.build());
                     pm.getPackageInfo(WHATSAPP_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-                    whatsappShare(call.<String>argument("type"), call.<String>argument("path"));
+                    whatsappShare(call.<String>argument("type"), call.<String>argument("path"), call.<String>argument("textMsg"));
                 } catch(PackageManager.NameNotFoundException e) {
                     openPlayStore(WHATSAPP_PACKAGE_NAME);
                 }
