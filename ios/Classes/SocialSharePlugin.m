@@ -68,7 +68,11 @@
           result(nil);
       } else {
           NSString *instagramLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id389801252";
-          [[UIApplication sharedApplication] openURL:[NSURL URLWithString:instagramLink]];
+          if (@available(iOS 10.0, *)) {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:instagramLink] options:@{} completionHandler:^(BOOL success) {}];
+          } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:instagramLink]];
+          }
           result(false);
       }
   } else if ([@"shareToFeedFacebook" isEqualToString:call.method]) {
@@ -78,7 +82,11 @@
           result(nil);
       } else {
           NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
-          [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          if (@available(iOS 10.0, *)) {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink] options:@{} completionHandler:^(BOOL success) {}];
+          } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          }
           result(false);
       }
   } else if([@"shareToFeedFacebookLink" isEqualToString:call.method]) {
@@ -88,7 +96,11 @@
           result(nil);
       } else {
           NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
-          [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          if (@available(iOS 10.0, *)) {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink] options:@{} completionHandler:^(BOOL success) {}];
+          } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          }
           result(false);
       }
   } else if([@"shareToTwitterLink" isEqualToString:call.method]) {
@@ -97,8 +109,12 @@
           [self twitterShare:call.arguments[@"text"] url:call.arguments[@"url"]];
           result(nil);
       } else {
-          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id333903271";
-          [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          NSString *twitterLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id333903271";
+          if (@available(iOS 10.0, *)) {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:twitterLink] options:@{} completionHandler:^(BOOL success) {}];
+          } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:twitterLink]];
+          }
           result(false);
       }
   } else {

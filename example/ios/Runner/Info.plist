@@ -37,11 +37,12 @@
 	<string>SocialShare Example</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-	    <string>instagram</string>
+		<string>instagram</string>
 		<string>fbapi</string>
 		<string>fb-messenger-share-api</string>
 		<string>fbauth2</string>
 		<string>fbshareextension</string>
+		<string>twitter</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
