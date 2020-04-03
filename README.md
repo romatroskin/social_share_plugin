@@ -116,6 +116,7 @@ Once you have the Facebook App ID figured out, then you'll just have to copy-pas
     <string>fb-messenger-share-api</string>
     <string>fbauth2</string>
     <string>fbshareextension</string>
+    <string>twitter</string>
 </array>
 ```
 

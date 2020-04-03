@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'social_share_plugin'
-  s.version          = '0.3.0'
+  s.version          = '0.3.1'
   s.summary          = 'Social Share to Facebook and Intagram Flutter plugin.'
   s.description      = <<-DESC
 Social Share to Facebook and Intagram Flutter plugin.
