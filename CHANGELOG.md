@@ -1,3 +1,8 @@
+## 0.3.1
+Twitter SDK removed due to deprecation. Sharing implemented via Intent for Android and openURL for iOS;
+Android plugin migrated to flutter embedding v2;
+Dependencies updated.
+
 ## 0.3.0+1
 Minor fixes for iOS.
 
