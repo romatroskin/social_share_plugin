@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.0'
+        classpath 'com.android.tools.build:gradle:3.6.2'
     }
 }
 
@@ -34,7 +34,6 @@ android {
     }
 
     dependencies {
-        implementation 'com.facebook.android:facebook-share:[4,5)'
-        implementation 'com.twitter.sdk.android:twitter:3.1.1'
+        implementation 'com.facebook.android:facebook-share:5.15.3'
     }
 }

@@ -1,7 +1,7 @@
 #import "SocialSharePlugin.h"
 #import <FBSDKCoreKit/FBSDKCoreKit.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
-#import <TwitterKit/TWTRKit.h>
+//#import <TwitterKit/TWTRKit.h>
 
 @implementation SocialSharePlugin {
     FlutterMethodChannel* _channel;
@@ -38,12 +38,11 @@
             openURL:(NSURL *)url
             options:
                 (NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-   BOOL handled = [[FBSDKApplicationDelegate sharedInstance]
+   return [[FBSDKApplicationDelegate sharedInstance]
              application:application
                  openURL:url
        sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
               annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
-  return handled || [[Twitter sharedInstance] application:application openURL:url options:options];
 }
 
  - (BOOL)application:(UIApplication *)application
@@ -140,20 +139,38 @@
 
 - (void)twitterShare:(NSString*)text
                  url:(NSString*)url {
-    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
-    TWTRComposer *composer = [[TWTRComposer alloc] init];
-    [composer setText:text];
-    [composer setURL:[NSURL URLWithString:url]];
-    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
-        if (result == TWTRComposerResultCancelled) {
-            [self->_channel invokeMethod:@"onCancel" arguments:nil];
-            NSLog(@"Tweet composition cancelled");
-        }
-        else {
-            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
-            NSLog(@"Sending Tweet!");
-        }
-    }];
+    UIApplication* application = [UIApplication sharedApplication];
+    NSString* shareString = [NSString stringWithFormat:@"https://twitter.com/intent/tweet?text=%@&url=%@", text, url];
+    NSString* escapedShareString = [shareString stringByAddingPercentEncodingWithAllowedCharacters:NSCharacterSet.URLQueryAllowedCharacterSet];
+    NSURL* shareUrl = [NSURL URLWithString:escapedShareString];
+    if (@available(iOS 10.0, *)) {
+        [application openURL:shareUrl options:@{} completionHandler:^(BOOL success) {
+            if(success) {
+                [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+                NSLog(@"Sending Tweet!");
+            } else {
+                [self->_channel invokeMethod:@"onCancel" arguments:nil];
+                NSLog(@"Tweet sending cancelled");
+            }
+        }];
+    } else {
+        [application openURL:shareUrl];
+        [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+        NSLog(@"Sending Tweet!");
+    }
+//    TWTRComposer *composer = [[TWTRComposer alloc] init];
+//    [composer setText:text];
+//    [composer setURL:[NSURL URLWithString:url]];
+//    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
+//        if (result == TWTRComposerResultCancelled) {
+//            [self->_channel invokeMethod:@"onCancel" arguments:nil];
+//            NSLog(@"Tweet composition cancelled");
+//        }
+//        else {
+//            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+//            NSLog(@"Sending Tweet!");
+//        }
+//    }];
 }
 
 - (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results{

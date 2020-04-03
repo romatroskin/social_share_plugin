@@ -1,9 +1,10 @@
 package com.cygnati.social_share_plugin;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.util.Log;
 
@@ -18,12 +19,13 @@ import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
-import com.twitter.sdk.android.tweetcomposer.TweetComposer;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.List;
 
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import io.flutter.embedding.engine.plugins.activity.ActivityAware;
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -37,22 +39,50 @@ import static android.app.Activity.RESULT_OK;
 /**
  * SocialSharePlugin
  */
-public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
+public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCallHandler,
+        PluginRegistry.ActivityResultListener {
     private final static String INSTAGRAM_PACKAGE_NAME = "com.instagram.android";
     private final static String FACEBOOK_PACKAGE_NAME = "com.facebook.katana";
     private final static String TWITTER_PACKAGE_NAME = "com.twitter.android";
 
     private final static int TWITTER_REQUEST_CODE = 0xc0ce;
 
-    private final Registrar registrar;
-    private final MethodChannel channel;
+    private Activity activity;
+    private MethodChannel channel;
     private final CallbackManager callbackManager;
 
-    private SocialSharePlugin(final Registrar registrar, final MethodChannel channel) {
-        this.channel = channel;
-        this.registrar = registrar;
+    public SocialSharePlugin() {
         this.callbackManager = CallbackManager.Factory.create();
-        this.registrar.addActivityResultListener(this);
+    }
+
+    @Override
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        this.channel = new MethodChannel(binding.getBinaryMessenger(), "social_share_plugin");
+        channel.setMethodCallHandler(this);
+    }
+
+    @Override
+    public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
+    }
+
+    @Override
+    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
+        binding.addActivityResultListener(this);
+        this.activity = binding.getActivity();
+    }
+
+    @Override
+    public void onDetachedFromActivityForConfigChanges() {
+    }
+
+    @Override
+    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
+        binding.removeActivityResultListener(this);
+        binding.addActivityResultListener(this);
+    }
+
+    @Override
+    public void onDetachedFromActivity() {
     }
 
     /**
@@ -60,7 +90,10 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
      */
     public static void registerWith(Registrar registrar) {
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "social_share_plugin");
-        channel.setMethodCallHandler(new SocialSharePlugin(registrar, channel));
+        final SocialSharePlugin plugin = new SocialSharePlugin();
+        plugin.channel = channel;
+        plugin.activity = registrar.activity();
+        channel.setMethodCallHandler(plugin);
     }
 
     @Override
@@ -84,7 +117,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        final PackageManager pm = registrar.activeContext().getPackageManager();
+        final PackageManager pm = activity.getPackageManager();
         switch (call.method) {
             case "getPlatformVersion":
                 result.success("Android " + android.os.Build.VERSION.RELEASE);
@@ -140,39 +173,48 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     }
 
     private void openPlayStore(String packageName) {
-        final Context context = registrar.activeContext();
         try {
             final Uri playStoreUri = Uri.parse("market://details?id=" + packageName);
             final Intent intent = new Intent(Intent.ACTION_VIEW, playStoreUri);
-            context.startActivity(intent);
+            activity.startActivity(intent);
         } catch (ActivityNotFoundException e) {
             final Uri playStoreUri = Uri.parse("https://play.google.com/store/apps/details?id=" + packageName);
             final Intent intent = new Intent(Intent.ACTION_VIEW, playStoreUri);
-            context.startActivity(intent);
+            activity.startActivity(intent);
         }
     }
 
     private void instagramShare(String type, String imagePath) {
-        final Context context = registrar.activeContext();
         final File image = new File(imagePath);
-        final Uri uri = FileProvider.getUriForFile(context,
-                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", image);
+        final Uri uri = FileProvider.getUriForFile(activity,
+                activity.getPackageName() + ".social.share.fileprovider", image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
         share.putExtra(Intent.EXTRA_STREAM, uri);
         share.setPackage(INSTAGRAM_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(share, "Share to"));
+
+        List<ResolveInfo> resInfoList = activity.getPackageManager().queryIntentActivities(share,
+                PackageManager.MATCH_DEFAULT_ONLY
+        );
+        for (ResolveInfo resolveInfo : resInfoList) {
+            String packageName = resolveInfo.activityInfo.packageName;
+            activity.grantUriPermission(packageName, uri,
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION
+            );
+        }
+
+        activity.startActivity(Intent.createChooser(share, "Share to"));
     }
 
     private void facebookShare(String caption, String mediaPath) {
-        final Context context = registrar.activeContext();
         final File media = new File(mediaPath);
-        final Uri uri = FileProvider.getUriForFile(context,
-                context.getApplicationContext().getPackageName() + ".social.share.fileprovider", media);
+        final Uri uri = FileProvider.getUriForFile(activity,
+                activity.getPackageName() + ".social.share.fileprovider", media);
         final SharePhoto photo = new SharePhoto.Builder().setImageUrl(uri).setCaption(caption).build();
         final SharePhotoContent content = new SharePhotoContent.Builder().addPhoto(photo).build();
-        final ShareDialog shareDialog = new ShareDialog(registrar.activity());
+        final ShareDialog shareDialog = new ShareDialog(activity);
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
             public void onSuccess(Sharer.Result result) {
@@ -202,7 +244,7 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
         final Uri uri = Uri.parse(url);
         final ShareLinkContent content = new ShareLinkContent.Builder()
                 .setContentUrl(uri).setQuote(quote).build();
-        final ShareDialog shareDialog = new ShareDialog(registrar.activity());
+        final ShareDialog shareDialog = new ShareDialog(activity);
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
             public void onSuccess(Sharer.Result result) {
@@ -229,17 +271,8 @@ public class SocialSharePlugin implements MethodCallHandler, PluginRegistry.Acti
     }
 
     private void twitterShareLink(String text, String url) {
-        try {
-            TweetComposer.Builder builder = new TweetComposer
-                    .Builder(registrar.activity()).text(text);
-            if (url != null && url.length() > 0) {
-                builder.url(new URL(url));
-            }
-
-            final Intent intent = builder.createIntent();
-            registrar.activity().startActivityForResult(intent, TWITTER_REQUEST_CODE);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+        final String tweetUrl = String.format("https://twitter.com/intent/tweet?text=%s&url=%s", text, url);
+        final Uri uri = Uri.parse(tweetUrl);
+        activity.startActivityForResult(new Intent(Intent.ACTION_VIEW, uri), TWITTER_REQUEST_CODE);
     }
 }
