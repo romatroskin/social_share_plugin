@@ -1,3 +1,8 @@
+## 0.3.1+1
+Added more provider paths variants;
+Added grantUriPermission call for better instagram sharing experience;
+Added callbacks for instagram sharing.
+
 ## 0.3.1
 Twitter SDK removed due to deprecation. Sharing implemented via Intent for Android and openURL for iOS;
 Android plugin migrated to flutter embedding v2;

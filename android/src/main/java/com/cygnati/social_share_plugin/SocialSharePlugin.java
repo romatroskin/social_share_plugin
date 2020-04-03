@@ -39,13 +39,14 @@ import static android.app.Activity.RESULT_OK;
 /**
  * SocialSharePlugin
  */
-public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCallHandler,
-        PluginRegistry.ActivityResultListener {
+public class SocialSharePlugin
+        implements FlutterPlugin, ActivityAware, MethodCallHandler, PluginRegistry.ActivityResultListener {
     private final static String INSTAGRAM_PACKAGE_NAME = "com.instagram.android";
     private final static String FACEBOOK_PACKAGE_NAME = "com.facebook.katana";
     private final static String TWITTER_PACKAGE_NAME = "com.twitter.android";
 
     private final static int TWITTER_REQUEST_CODE = 0xc0ce;
+    private final static int INSTAGRAM_REQUEST_CODE = 0xc0c3;
 
     private Activity activity;
     private MethodChannel channel;
@@ -98,15 +99,26 @@ public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
     @Override
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("SocialSharePlugin", "onActivityResult");
         if (requestCode == TWITTER_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                Log.d("SocialSharePlugin", "Twitter done.");
+                Log.d("SocialSharePlugin", "Twitter share done.");
                 channel.invokeMethod("onSuccess", null);
             } else if (resultCode == RESULT_CANCELED) {
                 Log.d("SocialSharePlugin", "Twitter cancelled.");
                 channel.invokeMethod("onCancel", null);
 
+            }
+
+            return true;
+        }
+
+        if (requestCode == INSTAGRAM_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                Log.d("SocialSharePlugin", "Instagram share done.");
+                channel.invokeMethod("onSuccess", null);
+            } else {
+                Log.d("SocialSharePlugin", "Instagram share failed.");
+                channel.invokeMethod("onCancel", null);
             }
 
             return true;
@@ -131,8 +143,6 @@ public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCa
                     openPlayStore(INSTAGRAM_PACKAGE_NAME);
                     result.success(false);
                 }
-
-                result.success(null);
                 break;
             case "shareToFeedFacebook":
                 try {
@@ -143,8 +153,6 @@ public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCa
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
                     result.success(false);
                 }
-
-                result.success(null);
                 break;
             case "shareToFeedFacebookLink":
                 try {
@@ -186,32 +194,30 @@ public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
     private void instagramShare(String type, String imagePath) {
         final File image = new File(imagePath);
-        final Uri uri = FileProvider.getUriForFile(activity,
-                activity.getPackageName() + ".social.share.fileprovider", image);
+        final Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".social.share.fileprovider",
+                image);
         final Intent share = new Intent(Intent.ACTION_SEND);
         share.setType(type);
         share.putExtra(Intent.EXTRA_STREAM, uri);
         share.setPackage(INSTAGRAM_PACKAGE_NAME);
         share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        List<ResolveInfo> resInfoList = activity.getPackageManager().queryIntentActivities(share,
-                PackageManager.MATCH_DEFAULT_ONLY
-        );
+        final Intent chooser = Intent.createChooser(share, "Share to");
+        final List<ResolveInfo> resInfoList = activity.getPackageManager().queryIntentActivities(chooser,
+                PackageManager.MATCH_DEFAULT_ONLY);
+
         for (ResolveInfo resolveInfo : resInfoList) {
-            String packageName = resolveInfo.activityInfo.packageName;
-            activity.grantUriPermission(packageName, uri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
-                            Intent.FLAG_GRANT_READ_URI_PERMISSION
-            );
+            final String packageName = resolveInfo.activityInfo.packageName;
+            activity.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        activity.startActivity(Intent.createChooser(share, "Share to"));
+        activity.startActivityForResult(chooser, INSTAGRAM_REQUEST_CODE);
     }
 
     private void facebookShare(String caption, String mediaPath) {
         final File media = new File(mediaPath);
-        final Uri uri = FileProvider.getUriForFile(activity,
-                activity.getPackageName() + ".social.share.fileprovider", media);
+        final Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".social.share.fileprovider",
+                media);
         final SharePhoto photo = new SharePhoto.Builder().setImageUrl(uri).setCaption(caption).build();
         final SharePhotoContent content = new SharePhotoContent.Builder().addPhoto(photo).build();
         final ShareDialog shareDialog = new ShareDialog(activity);
@@ -242,8 +248,7 @@ public class SocialSharePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
     private void facebookShareLink(String quote, String url) {
         final Uri uri = Uri.parse(url);
-        final ShareLinkContent content = new ShareLinkContent.Builder()
-                .setContentUrl(uri).setQuote(quote).build();
+        final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(uri).setQuote(quote).build();
         final ShareDialog shareDialog = new ShareDialog(activity);
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
