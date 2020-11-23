@@ -129,7 +129,7 @@ Done!
 import 'package:social_share_plugin/social_share_plugin.dart';
 
 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-await SocialSharePlugin.shareToFeedInstagram(path: file.path);
+await SocialSharePlugin.shareToFeedInstagram(path: file.path, hashtag: '#test');
 ```
 
 ### Facebook
@@ -137,9 +137,17 @@ await SocialSharePlugin.shareToFeedInstagram(path: file.path);
 import 'package:social_share_plugin/social_share_plugin.dart';
 
 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-await SocialSharePlugin.shareToFeedFacebook(path: file.path);
+await SocialSharePlugin.shareToFeedFacebookPhoto(path: file.path, hashtag: '#test');
 
-await SocialSharePlugin.shareToFeedFacebookLink(quote: 'quote', url: 'https://flutter.dev');
+if (Platform.isAndroid) {
+    File fileVideo = await ImagePicker.pickVideo(source: ImageSource.gallery);
+    await SocialSharePlugin.shareToFeedFacebookVideo(path: fileVideo.path, hashtag: '#test');
+} else if (Platform.isIOS) {
+    // This use a native video picker
+    await SocialSharePlugin.shareToFeedFacebookVideo(hashtag: '#test');
+}
+
+await SocialSharePlugin.shareToFeedFacebookLink(quote: 'quote', hashtag: '#test', url: 'https://flutter.dev');
 ```
 
 ### Twitter

@@ -18,6 +18,8 @@
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
+NSString *currentHashtag;
+
 - (instancetype)initWithChannel:(FlutterMethodChannel*)channel {
     self = [super init];
     if(self) {
@@ -75,10 +77,10 @@
           }
           result(false);
       }
-  } else if ([@"shareToFeedFacebook" isEqualToString:call.method]) {
+  } else if ([@"shareToFeedFacebookPhoto" isEqualToString:call.method]) {
       NSURL *fbURL = [NSURL URLWithString:@"fbapi://"];
       if([[UIApplication sharedApplication] canOpenURL:fbURL]) {
-          [self facebookShare:call.arguments[@"path"]];
+          [self facebookSharePhoto:call.arguments[@"path"] hashtag:call.arguments[@"hashtag"]];
           result(nil);
       } else {
           NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
@@ -89,10 +91,25 @@
           }
           result(false);
       }
-  } else if([@"shareToFeedFacebookLink" isEqualToString:call.method]) {
+  } else if ([@"shareToFeedFacebookVideo" isEqualToString:call.method]) {
       NSURL *fbURL = [NSURL URLWithString:@"fbapi://"];
       if([[UIApplication sharedApplication] canOpenURL:fbURL]) {
-          [self facebookShareLink:call.arguments[@"quote"] url:call.arguments[@"url"]];
+          [self facebookShareVideoWithPicker:call.arguments[@"path"] hashtag:call.arguments[@"hashtag"]];
+          result(nil);
+      } else {
+          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
+          if (@available(iOS 10.0, *)) {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink] options:@{} completionHandler:^(BOOL success) {}];
+          } else {
+              [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink]];
+          }
+          result(false);
+      }
+  }
+  else if([@"shareToFeedFacebookLink" isEqualToString:call.method]) {
+      NSURL *fbURL = [NSURL URLWithString:@"fbapi://"];
+      if([[UIApplication sharedApplication] canOpenURL:fbURL]) {
+          [self facebookShareLink:call.arguments[@"quote"] url:call.arguments[@"url"] hashtag:call.arguments[@"hashtag"]];
           result(nil);
       } else {
           NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
@@ -122,21 +139,75 @@
   }
 }
 
-- (void)facebookShare:(NSString*)imagePath {
-    //NSURL* path = [[NSURL alloc] initWithString:call.arguments[@"path"]];
+- (void)facebookSharePhoto:(NSString*)imagePath
+                   hashtag:(nullable NSString*)hashtag {
     FBSDKSharePhoto *photo = [[FBSDKSharePhoto alloc] init];
     photo.image = [[UIImage alloc] initWithContentsOfFile:imagePath];
     FBSDKSharePhotoContent *content = [[FBSDKSharePhotoContent alloc] init];
     content.photos = @[photo];
+    if (hashtag != (NSString*) [NSNull null] ) {
+        FBSDKHashtag *shareHashtag = [[FBSDKHashtag alloc] init];
+        shareHashtag.stringRepresentation = hashtag;
+        content.hashtag = shareHashtag;
+    }
+    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
+    [FBSDKShareDialog showFromViewController:controller withContent:content delegate:self];
+}
+
+- (void)facebookShareVideoWithPicker:(NSString*)videoPath
+                             hashtag:(NSString*)hashtag {
+    if (hashtag != (NSString*) [NSNull null] ) {
+        currentHashtag = hashtag;
+    }
+    UIImagePickerController *videoPicker = [[UIImagePickerController alloc] init];
+    videoPicker.delegate = self;
+    videoPicker.modalPresentationStyle = UIModalPresentationCurrentContext;
+    videoPicker.mediaTypes = @[(NSString*)kUTTypeMovie, (NSString*)kUTTypeAVIMovie, (NSString*)kUTTypeVideo, (NSString*)kUTTypeMPEG4];
+    videoPicker.videoQuality = UIImagePickerControllerQualityTypeHigh;
+    
+    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
+    while (controller.presentedViewController) {
+        controller = controller.presentedViewController;
+    }
+    [controller showDetailViewController:videoPicker sender:nil];
+}
+
+- (void)imagePickerController:(UIImagePickerController *)picker
+didFinishPickingMediaWithInfo:(NSDictionary *)info
+{
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    FBSDKShareVideo *video = [[FBSDKShareVideo alloc] init];
+    if (@available(iOS 11, *)) {
+        video.videoAsset = [info objectForKey:UIImagePickerControllerPHAsset];
+    } else {
+        video.videoURL = [info objectForKey:UIImagePickerControllerReferenceURL];
+    }
+    FBSDKShareVideoContent *content = [[FBSDKShareVideoContent alloc] init];
+    content.video = video;
+    if (currentHashtag != nil) {
+        FBSDKHashtag *shareHashtag = [[FBSDKHashtag alloc] init];
+        shareHashtag.stringRepresentation = [NSString stringWithString: currentHashtag];
+        content.hashtag = shareHashtag;
+        currentHashtag = nil;
+    }
+    
     UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
     [FBSDKShareDialog showFromViewController:controller withContent:content delegate:self];
 }
 
 - (void)facebookShareLink:(NSString*)quote
-                      url:(NSString*)url {
+                      url:(NSString*)url
+                  hashtag:(NSString*)hashtag{
     FBSDKShareLinkContent *content = [[FBSDKShareLinkContent alloc] init];
     content.contentURL = [NSURL URLWithString:url];
-    content.quote = quote;
+    if (quote != (NSString*) [NSNull null] ) {
+        content.quote = quote;
+    }
+    if (hashtag != (NSString*) [NSNull null] ) {
+        FBSDKHashtag *shareHashtag = [[FBSDKHashtag alloc] init];
+        shareHashtag.stringRepresentation = hashtag;
+        content.hashtag = shareHashtag;
+    }
     UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
     [FBSDKShareDialog showFromViewController:controller withContent:content delegate:self];
 }
@@ -200,7 +271,7 @@
 }
 
 - (void)sharer:(id<FBSDKSharing>)sharer didFailWithError:(NSError *)error{
-    [_channel invokeMethod:@"onError" arguments:nil];
+    [_channel invokeMethod:@"onError" arguments:[error localizedDescription]];
     NSLog(@"%@",error);
 }
 
