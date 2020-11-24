@@ -139,6 +139,8 @@ import 'package:social_share_plugin/social_share_plugin.dart';
 File file = await ImagePicker.pickImage(source: ImageSource.gallery);
 await SocialSharePlugin.shareToFeedFacebookPhoto(path: file.path, hashtag: '#test');
 
+await SocialSharePlugin.shareToFeedFacebookPhoto(url: 'https://picsum.photos/600/400', hashtag: '#test');
+
 if (Platform.isAndroid) {
     File fileVideo = await ImagePicker.pickVideo(source: ImageSource.gallery);
     await SocialSharePlugin.shareToFeedFacebookVideo(path: fileVideo.path, hashtag: '#test');

@@ -85,6 +85,26 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             RaisedButton(
+              child: Text('Share to Facebook Network Photo'),
+              onPressed: () async {
+                await SocialSharePlugin.shareToFeedFacebookPhoto(
+                    url: 'https://picsum.photos/600/400',
+                    hashtag: '#test',
+                    onSuccess: (_) {
+                      print('FACEBOOK SUCCESS');
+                      return;
+                    },
+                    onCancel: () {
+                      print('FACEBOOK CANCELLED');
+                      return;
+                    },
+                    onError: (error) {
+                      print('FACEBOOK ERROR $error');
+                      return;
+                    });
+              },
+            ),
+            RaisedButton(
               child: Text('Share to Facebook Video'),
               onPressed: () async {
                 if (Platform.isAndroid) {
