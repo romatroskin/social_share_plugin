@@ -7,7 +7,8 @@ typedef Future<dynamic> OnErrorHandler(String error);
 typedef Future<dynamic> OnSuccessHandler(String postId);
 
 class SocialSharePlugin {
-  static const MethodChannel _channel = const MethodChannel('social_share_plugin');
+  static const MethodChannel _channel =
+      const MethodChannel('social_share_plugin');
 
   static Future<String> get platformVersion async {
     final String version = await _channel.invokeMethod('getPlatformVersion');
@@ -19,6 +20,7 @@ class SocialSharePlugin {
     @required String path,
     OnSuccessHandler onSuccess,
     OnCancelHandler onCancel,
+    OnErrorHandler onError,
   }) async {
     _channel.setMethodCallHandler((call) {
       switch (call.method) {
@@ -26,6 +28,8 @@ class SocialSharePlugin {
           return onSuccess(call.arguments);
         case "onCancel":
           return onCancel();
+        case "onError":
+          return onError(call.arguments);
         default:
           throw UnsupportedError("Unknown method called");
       }

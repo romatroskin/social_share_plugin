@@ -142,15 +142,49 @@
 }
 
 - (void)instagramShare:(NSString*)imagePath {
-    NSError *error = nil;
-    UIViewController* controller = [UIApplication sharedApplication].delegate.window.rootViewController;
-    [[NSFileManager defaultManager] moveItemAtPath:imagePath toPath:[NSString stringWithFormat:@"%@.igo", imagePath] error:&error];
-    NSURL *path = [NSURL URLWithString:[NSString stringWithFormat:@"file://%@.igo", imagePath]];
-    _dic = [UIDocumentInteractionController interactionControllerWithURL:path];
-    _dic.UTI = @"com.instagram.exclusivegram";
-    if (![_dic presentOpenInMenuFromRect:CGRectZero inView:controller.view animated:TRUE]) {
-        NSLog(@"Error sharing to instagram");
-    };
+    //Check if user has instagram installed on device
+    if (![[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"instagram://app"]]) {
+        NSLog(@"Share error: Instagram not installed");
+        //Invoke the "onError" method (like handled in facebook share) with an error string as argument
+        [self->_channel invokeMethod:@"onError" arguments:@"Share error: Instagram not installed"];
+        return;
+    }
+    
+    //Check authorization for full access in the camera roll
+    [self checkCameraRollAuthWithCompletion:^(BOOL fullyAuthorized) {
+        if (!fullyAuthorized) {
+            NSLog(@"Share error: Missing camera roll access authorization");
+            //Invoke the "onError" method (like handled in facebook share) with an error string as argument
+            [self->_channel invokeMethod:@"onError" arguments:@"Share error: Missing camera roll access authorization"];
+            return;
+        }
+        
+        //Save the image in the camera roll
+        UIImage *image = [UIImage imageWithContentsOfFile: imagePath];
+        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+        PHFetchOptions *options = [[PHFetchOptions alloc] init];
+        options.sortDescriptors = @[
+            [NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO],
+        ];
+        
+        //Pick the asset from the camera roll (it takes the last saved image in the camera roll)
+        PHFetchResult *result = [PHAsset fetchAssetsWithOptions:options];
+        PHAsset *asset = [result firstObject];
+        //Retrieve the localIdentifier to be sent to instagram
+        NSString *localId = asset.localIdentifier;
+
+        //Build the url to be opened in order to share the image on the instagram feed
+        NSURL *url = [NSURL URLWithString:[NSString stringWithFormat:@"instagram://library?LocalIdentifier=%@",localId]];
+
+        //Thread-safe openURL
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[UIApplication sharedApplication] openURL:url];
+        });
+
+        //Invoke the "onSuccess" method without arguments. It can be useful if you want to handle
+        //a success dialog or something else.
+        [self->_channel invokeMethod:@"onSuccess" arguments:nil];
+    }];
 }
 
 - (void)twitterShare:(NSString*)text
@@ -174,19 +208,32 @@
         [self->_channel invokeMethod:@"onSuccess" arguments:nil];
         NSLog(@"Sending Tweet!");
     }
-//    TWTRComposer *composer = [[TWTRComposer alloc] init];
-//    [composer setText:text];
-//    [composer setURL:[NSURL URLWithString:url]];
-//    [composer showFromViewController:controller completion:^(TWTRComposerResult result) {
-//        if (result == TWTRComposerResultCancelled) {
-//            [self->_channel invokeMethod:@"onCancel" arguments:nil];
-//            NSLog(@"Tweet composition cancelled");
-//        }
-//        else {
-//            [self->_channel invokeMethod:@"onSuccess" arguments:nil];
-//            NSLog(@"Sending Tweet!");
-//        }
-//    }];
+}
+
+/*!
+    @brief Check camera roll permissions
+ 
+    @discussion This method check if the application has FULL rights to access camera roll.
+    This because with this instagram share method you first need to save the image in the
+    camera roll, then retrieve the PHAsset localIdentifier and send it to instagram inside
+    the url. After that, a simple openURL do the magic.
+ 
+    @param  completionHandler This handler is called when user give a response on the
+    system authorization alert. If he give the full access the BOOL will be true, otherwise
+    will be false. 
+ */
+- (void)checkCameraRollAuthWithCompletion:(void(^_Nonnull)(BOOL fullyAuthorized))completionHandler
+ {
+    [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+        switch (status) {
+            case PHAuthorizationStatusAuthorized:
+                completionHandler(YES);
+                break;
+            default:
+                completionHandler(NO);
+                break;
+        }
+    }];
 }
 
 - (void)sharer:(id<FBSDKSharing>)sharer didCompleteWithResults:(NSDictionary *)results{
