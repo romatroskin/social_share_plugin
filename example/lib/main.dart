@@ -57,16 +57,19 @@ class _MyAppState extends State<MyApp> {
             RaisedButton(
               child: Text('Share to Instagram'),
               onPressed: () async {
-                File file = await ImagePicker.pickImage(source: ImageSource.gallery);
+                File file =
+                    await ImagePicker.pickImage(source: ImageSource.gallery);
                 await SocialSharePlugin.shareToFeedInstagram(path: file.path);
               },
             ),
             RaisedButton(
-              child: Text('Share to Facebook'),
+              child: Text('Share to Facebook Photo'),
               onPressed: () async {
-                File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-                await SocialSharePlugin.shareToFeedFacebook(
+                File file =
+                    await ImagePicker.pickImage(source: ImageSource.gallery);
+                await SocialSharePlugin.shareToFeedFacebookPhoto(
                     path: file.path,
+                    hashtag: '#test',
                     onSuccess: (_) {
                       print('FACEBOOK SUCCESS');
                       return;
@@ -82,6 +85,65 @@ class _MyAppState extends State<MyApp> {
               },
             ),
             RaisedButton(
+              child: Text('Share to Facebook Network Photo'),
+              onPressed: () async {
+                await SocialSharePlugin.shareToFeedFacebookPhoto(
+                    url: 'https://picsum.photos/600/400',
+                    hashtag: '#test',
+                    onSuccess: (_) {
+                      print('FACEBOOK SUCCESS');
+                      return;
+                    },
+                    onCancel: () {
+                      print('FACEBOOK CANCELLED');
+                      return;
+                    },
+                    onError: (error) {
+                      print('FACEBOOK ERROR $error');
+                      return;
+                    });
+              },
+            ),
+            RaisedButton(
+              child: Text('Share to Facebook Video'),
+              onPressed: () async {
+                if (Platform.isAndroid) {
+                  File file =
+                      await ImagePicker.pickVideo(source: ImageSource.gallery);
+                  await SocialSharePlugin.shareToFeedFacebookVideo(
+                      path: file.path,
+                      hashtag: '#test',
+                      onSuccess: (_) {
+                        print('FACEBOOK SUCCESS');
+                        return;
+                      },
+                      onCancel: () {
+                        print('FACEBOOK CANCELLED');
+                        return;
+                      },
+                      onError: (error) {
+                        print('FACEBOOK ERROR $error');
+                        return;
+                      });
+                } else if (Platform.isIOS) {
+                  await SocialSharePlugin.shareToFeedFacebookVideo(
+                      hashtag: '#test',
+                      onSuccess: (_) {
+                        print('FACEBOOK SUCCESS');
+                        return;
+                      },
+                      onCancel: () {
+                        print('FACEBOOK CANCELLED');
+                        return;
+                      },
+                      onError: (error) {
+                        print('FACEBOOK ERROR $error');
+                        return;
+                      });
+                }
+              },
+            ),
+            RaisedButton(
               child: Text('Share to Facebook Link'),
               onPressed: () async {
                 String url = 'https://flutter.dev/';
@@ -90,6 +152,7 @@ class _MyAppState extends State<MyApp> {
                 final result = await SocialSharePlugin.shareToFeedFacebookLink(
                   quote: quote,
                   url: url,
+                  hashtag: '#test',
                   onSuccess: (_) {
                     print('FACEBOOK SUCCESS');
                     return;
