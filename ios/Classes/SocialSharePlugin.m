@@ -95,7 +95,7 @@
           [self facebookShareLink:call.arguments[@"quote"] url:call.arguments[@"url"]];
           result(nil);
       } else {
-          NSString *fbLink = @"itms-apps://itunes.apple.com/us/app/apple-store/id284882215";
+          NSString *fbLink = [@"https://www.facebook.com/sharer.php?u=" stringByAppendingString: call.arguments[@"url"]];
           if (@available(iOS 10.0, *)) {
               [[UIApplication sharedApplication] openURL:[NSURL URLWithString:fbLink] options:@{} completionHandler:^(BOOL success) {}];
           } else {

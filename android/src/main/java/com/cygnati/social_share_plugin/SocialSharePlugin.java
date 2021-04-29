@@ -160,7 +160,8 @@ public class SocialSharePlugin
                     facebookShareLink(call.<String>argument("quote"), call.<String>argument("url"));
                     result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
-                    openPlayStore(FACEBOOK_PACKAGE_NAME);
+                    //openPlayStore(FACEBOOK_PACKAGE_NAME);
+                    openFacebookMobileUrl(call.<String>argument("url"));
                     result.success(false);
                 }
                 break;
@@ -190,6 +191,12 @@ public class SocialSharePlugin
             final Intent intent = new Intent(Intent.ACTION_VIEW, playStoreUri);
             activity.startActivity(intent);
         }
+    }
+
+    private void openFacebookMobileUrl(String url) {
+            final Uri playStoreUri = Uri.parse("https://www.facebook.com/sharer.php?u=" + url);
+            final Intent intent = new Intent(Intent.ACTION_VIEW, playStoreUri);
+            activity.startActivity(intent);
     }
 
     private void instagramShare(String type, String imagePath) {
