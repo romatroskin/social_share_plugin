@@ -1,7 +1,10 @@
 #import <Flutter/Flutter.h>
 #import <FBSDKShareKit/FBSDKShareKit.h>
 
-@interface SocialSharePlugin : NSObject <FlutterPlugin, FBSDKSharingDelegate>
+#import <UIKit/UIKit.h>
+#import <MobileCoreServices/MobileCoreServices.h> // needed for video types
+
+@interface SocialSharePlugin : NSObject <FlutterPlugin, FBSDKSharingDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 {
 }
 @end

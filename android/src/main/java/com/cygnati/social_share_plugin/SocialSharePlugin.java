@@ -14,13 +14,20 @@ import androidx.core.content.FileProvider;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.share.Share;
 import com.facebook.share.Sharer;
+import com.facebook.share.internal.ShareFeedContent;
+import com.facebook.share.model.ShareContent;
+import com.facebook.share.model.ShareHashtag;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
+import com.facebook.share.model.ShareVideo;
+import com.facebook.share.model.ShareVideoContent;
 import com.facebook.share.widget.ShareDialog;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -144,10 +151,20 @@ public class SocialSharePlugin
                     result.success(false);
                 }
                 break;
-            case "shareToFeedFacebook":
+            case "shareToFeedFacebookPhoto":
                 try {
                     pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-                    facebookShare(call.<String>argument("caption"), call.<String>argument("path"));
+                    facebookSharePhoto(call.<String>argument("caption"), call.<String>argument("path"), call.<String>argument("hashtag"));
+                    result.success(true);
+                } catch (PackageManager.NameNotFoundException e) {
+                    openPlayStore(FACEBOOK_PACKAGE_NAME);
+                    result.success(false);
+                }
+                break;
+            case "shareToFeedFacebookVideo":
+                try {
+                    pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
+                    facebookShareVideo(call.<String>argument("path"), call.<String>argument("hashtag"));
                     result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
@@ -157,7 +174,7 @@ public class SocialSharePlugin
             case "shareToFeedFacebookLink":
                 try {
                     pm.getPackageInfo(FACEBOOK_PACKAGE_NAME, PackageManager.GET_ACTIVITIES);
-                    facebookShareLink(call.<String>argument("quote"), call.<String>argument("url"));
+                    facebookShareLink(call.<String>argument("quote"), call.<String>argument("url"), call.<String>argument("hashtag"));
                     result.success(true);
                 } catch (PackageManager.NameNotFoundException e) {
                     openPlayStore(FACEBOOK_PACKAGE_NAME);
@@ -214,41 +231,37 @@ public class SocialSharePlugin
         activity.startActivityForResult(chooser, INSTAGRAM_REQUEST_CODE);
     }
 
-    private void facebookShare(String caption, String mediaPath) {
+    private void facebookSharePhoto(String caption, String mediaPath, String hashtag) {
         final File media = new File(mediaPath);
         final Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".social.share.fileprovider",
                 media);
         final SharePhoto photo = new SharePhoto.Builder().setImageUrl(uri).setCaption(caption).build();
-        final SharePhotoContent content = new SharePhotoContent.Builder().addPhoto(photo).build();
-        final ShareDialog shareDialog = new ShareDialog(activity);
-        shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
-            @Override
-            public void onSuccess(Sharer.Result result) {
-                channel.invokeMethod("onSuccess", null);
-                Log.d("SocialSharePlugin", "Sharing successfully done.");
-            }
+        final ShareHashtag shareHashtag = new ShareHashtag.Builder().setHashtag(hashtag).build();
+        final SharePhotoContent content = new SharePhotoContent.Builder().addPhoto(photo).setShareHashtag(shareHashtag).build();
 
-            @Override
-            public void onCancel() {
-                channel.invokeMethod("onCancel", null);
-                Log.d("SocialSharePlugin", "Sharing cancelled.");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                channel.invokeMethod("onError", error.getMessage());
-                Log.d("SocialSharePlugin", "Sharing error occurred.");
-            }
-        });
-
-        if (ShareDialog.canShow(SharePhotoContent.class)) {
-            shareDialog.show(content);
-        }
+        facebookShareContent(content);
     }
 
-    private void facebookShareLink(String quote, String url) {
+    private void facebookShareVideo(String mediaPath, String hashtag) {
+        final File media = new File(mediaPath);
+        final Uri uri = FileProvider.getUriForFile(activity, activity.getPackageName() + ".social.share.fileprovider",
+                media);
+        final ShareVideo video =  new ShareVideo.Builder().setLocalUrl(uri).build();
+        final ShareHashtag shareHashtag = new ShareHashtag.Builder().setHashtag(hashtag).build();
+        final ShareVideoContent content = new ShareVideoContent.Builder().setVideo(video).setShareHashtag(shareHashtag).build();
+
+        facebookShareContent(content);
+    }
+
+    private void facebookShareLink(String quote, String url, String hashtag) {
         final Uri uri = Uri.parse(url);
-        final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(uri).setQuote(quote).build();
+        final ShareHashtag shareHashtag = new ShareHashtag.Builder().setHashtag(hashtag).build();
+        final ShareLinkContent content = new ShareLinkContent.Builder().setContentUrl(uri).setShareHashtag(shareHashtag).setQuote(quote).build();
+        facebookShareContent(content);
+    }
+
+
+    private void facebookShareContent(ShareContent content) {
         final ShareDialog shareDialog = new ShareDialog(activity);
         shareDialog.registerCallback(callbackManager, new FacebookCallback<Sharer.Result>() {
             @Override
@@ -270,7 +283,7 @@ public class SocialSharePlugin
             }
         });
 
-        if (ShareDialog.canShow(ShareLinkContent.class)) {
+        if (ShareDialog.canShow(content.getClass())) {
             shareDialog.show(content);
         }
     }
