@@ -5,6 +5,8 @@ import 'package:social_share_plugin/social_share_plugin.dart';
 void main() {
   const MethodChannel channel = MethodChannel('social_share_plugin');
 
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() {
     channel.setMockMethodCallHandler((MethodCall methodCall) async {
       return '42';

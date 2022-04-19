@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:social_share_plugin/social_share_plugin.dart';
-import 'package:image_picker/image_picker.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
@@ -26,8 +28,10 @@ class _MyAppState extends State<MyApp> {
   Future<void> initPlatformState() async {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
+    // We also handle the message potentially returning null.
     try {
-      platformVersion = await SocialSharePlugin.platformVersion;
+      platformVersion =
+          await SocialSharePlugin.platformVersion ?? 'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -49,85 +53,8 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Column(
-          children: <Widget>[
-            Center(
-              child: Text('Running on: $_platformVersion\n'),
-            ),
-            RaisedButton(
-              child: Text('Share to Instagram'),
-              onPressed: () async {
-                File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-                await SocialSharePlugin.shareToFeedInstagram(path: file.path);
-              },
-            ),
-            RaisedButton(
-              child: Text('Share to Facebook'),
-              onPressed: () async {
-                File file = await ImagePicker.pickImage(source: ImageSource.gallery);
-                await SocialSharePlugin.shareToFeedFacebook(
-                    path: file.path,
-                    onSuccess: (_) {
-                      print('FACEBOOK SUCCESS');
-                      return;
-                    },
-                    onCancel: () {
-                      print('FACEBOOK CANCELLED');
-                      return;
-                    },
-                    onError: (error) {
-                      print('FACEBOOK ERROR $error');
-                      return;
-                    });
-              },
-            ),
-            RaisedButton(
-              child: Text('Share to Facebook Link'),
-              onPressed: () async {
-                String url = 'https://flutter.dev/';
-                final quote =
-                    'Flutter is Google’s portable UI toolkit for building beautiful, natively-compiled applications for mobile, web, and desktop from a single codebase.';
-                final result = await SocialSharePlugin.shareToFeedFacebookLink(
-                  quote: quote,
-                  url: url,
-                  onSuccess: (_) {
-                    print('FACEBOOK SUCCESS');
-                    return;
-                  },
-                  onCancel: () {
-                    print('FACEBOOK CANCELLED');
-                    return;
-                  },
-                  onError: (error) {
-                    print('FACEBOOK ERROR $error');
-                    return;
-                  },
-                );
-
-                print(result);
-              },
-            ),
-            RaisedButton(
-              child: Text('Share to Twitter'),
-              onPressed: () async {
-                String url = 'https://flutter.dev/';
-                final text =
-                    'Flutter is Google’s portable UI toolkit for building beautiful, natively-compiled applications for mobile, web, and desktop from a single codebase.';
-                final result = await SocialSharePlugin.shareToTwitterLink(
-                    text: text,
-                    url: url,
-                    onSuccess: (_) {
-                      print('TWITTER SUCCESS');
-                      return;
-                    },
-                    onCancel: () {
-                      print('TWITTER CANCELLED');
-                      return;
-                    });
-                print(result);
-              },
-            ),
-          ],
+        body: Center(
+          child: Text('Running on: $_platformVersion\n'),
         ),
       ),
     );
