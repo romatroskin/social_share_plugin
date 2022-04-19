@@ -59,7 +59,7 @@ class SocialSharePlugin : FlutterPlugin, ActivityAware, MethodCallHandler,
 //    binding.removeActivityResultListener(this)
   }
 
-  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Boolean {
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
     if (requestCode == TWITTER_REQUEST_CODE) {
       if (resultCode == Activity.RESULT_OK) {
         Log.d("SocialSharePlugin", "Twitter share done.")
