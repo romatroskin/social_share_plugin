@@ -45,6 +45,12 @@
  **\<your project root\>/android/app/src/main/AndroidManifest.xml**
 
  ```xml
+ <queries>
+     <package android:name="com.twitter.android" />
+     <package android:name="com.facebook.katana" />
+     <package android:name="com.com.instagram.android" />
+ </queries>
+ 
  <meta-data android:name="com.facebook.sdk.ApplicationId"
      android:value="@string/facebook_app_id"/>
 
