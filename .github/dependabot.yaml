@@ -1,0 +1,27 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+    - package-ecosystem: "github-actions"
+      directory: "/"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pub"
+      directory: "/packages/social_share_plugin"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pub"
+      directory: "/packages/social_share_plugin/example"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pub"
+      directory: "/packages/social_share_plugin_platform_interface"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pub"
+      directory: "/packages/social_share_plugin_android"
+      schedule:
+          interval: "daily"
+    - package-ecosystem: "pub"
+      directory: "/packages/social_share_plugin_ios"
+      schedule:
+          interval: "daily"

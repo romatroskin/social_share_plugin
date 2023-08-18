@@ -1,0 +1,10 @@
+name: social_share_plugin
+packages:
+    - packages/*
+    - packages/*/example
+scripts:
+    analyze: melos exec -- flutter analyze
+    format: melos exec -- dart format .
+
+    fix: melos exec -- dart fix --apply
+    get: melos exec -- flutter pub get

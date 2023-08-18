@@ -1,3 +1,6 @@
+## 0.4.1+2
+Migrated to federated plugin structure
+
 ## 0.4.1+1
 ***Breaking change:*** migrated to null safety.
 Android rewritten to kotlin;

@@ -1,0 +1,27 @@
+name: social_share_plugin_android
+description: Android implementation of the social_share_plugin plugin
+repository: https://github.com/romatroskin/social_share_plugin/tree/master/packages/social_share_plugin_android
+version: 0.1.0+1
+
+environment:
+    sdk: ">=3.0.0 <4.0.0"
+
+flutter:
+    plugin:
+        implements: social_share_plugin
+        platforms:
+            android:
+                package: com.cygnati.social_share_plugin
+                pluginClass: SocialSharePluginAndroid
+                dartPluginClass: SocialSharePluginAndroid
+
+dependencies:
+    flutter:
+        sdk: flutter
+    social_share_plugin_platform_interface: ^0.1.0+1
+
+dev_dependencies:
+    flutter_test:
+        sdk: flutter
+    plugin_platform_interface: ^2.0.0
+    very_good_analysis: ^5.0.0
