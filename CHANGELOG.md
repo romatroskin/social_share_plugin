@@ -1,23 +1,41 @@
+# Versions
+
+## 0.4.2+1
+
+* **Breaking change:** Removed SocialSharePlugin class, just use methods provided in example now.  
+* Migrated to federated plugin structure
+* Updated Facebook Libraries
+* Improved documentation
+* Bug fixing.
+
 ## 0.4.1+1
-***Breaking change:*** migrated to null safety.
+
+* **Breaking change:** migrated to null safety.
 Android rewritten to kotlin;
 iOS rewritten to swift.
 
 ## 0.3.1+1
-Added more provider paths variants;
-Added grantUriPermission call for better instagram sharing experience;
-Added callbacks for instagram sharing.
+
+* Added more provider paths variants;
+* Added grantUriPermission call for better instagram sharing experience;
+* Added callbacks for instagram sharing.
 
 ## 0.3.1
-Twitter SDK removed due to deprecation. Sharing implemented via Intent for Android and openURL for iOS;
-Android plugin migrated to flutter embedding v2;
-Dependencies updated.
+
+* Twitter SDK removed due to deprecation.
+* Sharing implemented via Intent for Android and openURL for iOS
+* Android plugin migrated to flutter embedding v2
+* Dependencies updated.
 
 ## 0.3.0+1
-Minor fixes for iOS.
+
+* Minor fixes for iOS.
 
 ## 0.3.0
-Removed to needed anymnore facebook login on share link. Twitter share added. Minor bugfixes and cleanup.
+
+* Removed to needed anymnore facebook login on share link
+* Twitter share added
+* Minor bugfixes and cleanup.
 
 ## 0.2.0
 
