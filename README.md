@@ -68,6 +68,18 @@ I prefer to pass this ID to manifest throght gradle manifestPlaceholders. You ca
 </provider>
  ```
 
+Need to add these variables to string resources as well, i've added them from gradle with resValue.
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Example</string>
+    <!-- Replace "000000000000" with your Facebook App ID here. Same to the secret -->
+    <string name="facebook_app_id">000000000000</string>
+    <string name="facebook_client_token">00000000000000000000000000000000</string>
+</resources>
+```
+
 And the last one is our provider paths:
 
 > ***\<your project root\>/android/app/src/main/res/xml/provider_paths.xml***

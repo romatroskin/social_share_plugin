@@ -8,3 +8,4 @@ scripts:
 
     fix: melos exec -- dart fix --apply
     get: melos exec -- flutter pub get
+    upgrade: melos exec -- flutter pub upgrade

@@ -50,6 +50,10 @@ android {
         versionName flutterVersionName
 
         manifestPlaceholders.facebookAppId = localProperties.getProperty('facebook.appId')
+        manifestPlaceholders.facebookClientToken = localProperties.getProperty('facebook.clientToken')
+
+        resValue "string", "facebook_app_id", localProperties.getProperty('facebook.appId')
+        resValue "string", "facebook_client_token", localProperties.getProperty('facebook.clientToken')
     }
 
     buildTypes {

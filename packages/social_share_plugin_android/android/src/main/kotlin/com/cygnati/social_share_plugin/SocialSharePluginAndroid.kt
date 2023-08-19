@@ -5,7 +5,6 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.facebook.CallbackManager
@@ -168,9 +167,9 @@ class SocialSharePluginAndroid : FlutterPlugin, ActivityAware, MethodCallHandler
     )
     val photo: SharePhoto = SharePhoto.Builder().setImageUrl(uri).setCaption(caption).build()
     val content: SharePhotoContent = SharePhotoContent.Builder().addPhoto(photo).build()
-    val shareDialog = ShareDialog(activity)
-    shareDialog.registerCallback(callbackManager, object : FacebookCallback<Sharer.Result?> {
-      override fun onSuccess(result: Sharer.Result?) {
+    val shareDialog = ShareDialog(activity!!)
+    shareDialog.registerCallback(callbackManager, object : FacebookCallback<Sharer.Result> {
+      override fun onSuccess(result: Sharer.Result) {
         channel!!.invokeMethod("onSuccess", null)
         Log.d("SocialSharePlugin", "Sharing successfully done.")
       }
@@ -193,9 +192,9 @@ class SocialSharePluginAndroid : FlutterPlugin, ActivityAware, MethodCallHandler
   private fun facebookShareLink(quote: String?, url: String?) {
     val uri = Uri.parse(url)
     val content: ShareLinkContent = ShareLinkContent.Builder().setContentUrl(uri).setQuote(quote).build()
-    val shareDialog = ShareDialog(activity)
-    shareDialog.registerCallback(callbackManager, object : FacebookCallback<Sharer.Result?> {
-      override fun onSuccess(result: Sharer.Result?) {
+    val shareDialog = ShareDialog(activity!!)
+    shareDialog.registerCallback(callbackManager, object : FacebookCallback<Sharer.Result> {
+      override fun onSuccess(result: Sharer.Result) {
         channel!!.invokeMethod("onSuccess", null)
         Log.d("SocialSharePlugin", "Sharing successfully done.")
       }

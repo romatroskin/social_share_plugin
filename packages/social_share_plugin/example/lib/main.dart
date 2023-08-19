@@ -98,7 +98,7 @@ class _HomePageState extends State<HomePage> {
                 try {
                   await shareToTwitterLink(
                     url: 'https://www.flutter.dev',
-                    text: 'test',
+                    text: r'test #, & and $',
                   );
                 } catch (error) {
                   ScaffoldMessenger.of(context).showSnackBar(

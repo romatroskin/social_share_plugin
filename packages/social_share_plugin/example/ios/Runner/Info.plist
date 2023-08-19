@@ -47,5 +47,29 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>fb676309134026858</string>
+			</array>
+		</dict>
+	</array>
+	<key>FacebookAppID</key>
+	<string>000000000000</string>
+	<key>FacebookDisplayName</key>
+	<string>Example</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram</string>
+		<string>fbapi</string>
+		<string>fb-messenger-share-api</string>
+		<string>fbauth2</string>
+		<string>fbshareextension</string>
+		<string>twitter</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Need to share.</string>
 </dict>
 </plist>
