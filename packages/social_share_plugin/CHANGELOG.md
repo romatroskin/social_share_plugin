@@ -1,5 +1,9 @@
 # Versions
 
+## 0.4.2+2
+
+* Minor organization fixes
+
 ## 0.4.2+1
 
 * **Breaking change:** Removed SocialSharePlugin class, just use methods provided in example now.  
