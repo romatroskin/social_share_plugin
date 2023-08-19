@@ -8,7 +8,8 @@ class SocialSharePluginIOS extends SocialSharePluginPlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('social_share_plugin_ios');
 
-  /// Registers this class as the default instance of [SocialSharePluginPlatform]
+  /// Registers this class as the default instance of
+  /// [SocialSharePluginPlatform]
   static void registerWith() {
     SocialSharePluginPlatform.instance = SocialSharePluginIOS();
   }
