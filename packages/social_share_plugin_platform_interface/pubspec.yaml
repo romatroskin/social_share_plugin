@@ -1,17 +1,17 @@
 name: social_share_plugin_platform_interface
 description: A common platform interface for the social_share_plugin plugin.
+repository: https://github.com/romatroskin/social_share_plugin/tree/master/packages/social_share_plugin_platform_interface
 version: 0.1.0+1
 
-
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+    sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
-  plugin_platform_interface: ^2.1.0
+    flutter:
+        sdk: flutter
+    plugin_platform_interface: ^2.1.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  very_good_analysis: ^5.0.0
+    flutter_test:
+        sdk: flutter
+    very_good_analysis: ^5.0.0

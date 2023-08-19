@@ -16,7 +16,8 @@ typedef OnSuccessHandler = Future<void> Function(String postId);
 /// rather than implement it as `SocialSharePlugin`.
 /// Extending this class (using `extends`) ensures that the subclass will get
 /// the default implementation, while platform implementations that `implements`
-///  this interface will be broken by newly added [SocialSharePluginPlatform] methods.
+///  this interface will be broken by newly added [SocialSharePluginPlatform]
+/// methods.
 abstract class SocialSharePluginPlatform extends PlatformInterface {
   /// Constructs a SocialSharePluginPlatform.
   SocialSharePluginPlatform() : super(token: _token);
@@ -31,7 +32,8 @@ abstract class SocialSharePluginPlatform extends PlatformInterface {
   static SocialSharePluginPlatform get instance => _instance;
 
   /// Platform-specific plugins should set this with their own platform-specific
-  /// class that extends [SocialSharePluginPlatform] when they register themselves.
+  /// class that extends [SocialSharePluginPlatform] when they register
+  /// themselves.
   static set instance(SocialSharePluginPlatform instance) {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
